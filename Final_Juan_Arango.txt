@@ -1,1 +1,46 @@
 
+
+--TABLA
+
+CREATE TABLE Masks
+(
+  Mask VARCHAR2(1000) NOT NULL,
+  Result VARCHAR2(4000) NOT NULL
+);  
+ 
+ 
+
+--FUNCION
+
+
+CREATE OR REPLACE FUNCTION Mask_Function(numeroText IN VARCHAR)
+RETURN VARCHAR IS
+   valorcalcular VARCHAR2(4000) := '';
+   temporal NUMBER := 0;
+BEGIN  
+    FOR contador IN 0..9  LOOP    
+      temporal := TO_NUMBER(REPLACE(numeroText, '*', contador));
+      IF MOD(temporal, 6) = 0 
+      THEN
+        valorcalcular := valorcalcular||','||REPLACE(numeroText, '*', contador);
+      END IF;
+    END LOOP;
+    RETURN valorcalcular;
+EXCEPTION    
+  WHEN OTHERS THEN
+    RETURN 'ORA-0'||SUBSTR(SQLCODE,2,4);
+END; 
+
+
+
+--TRIGGER
+
+
+CREATE OR REPLACE TRIGGER Trigger_Mask
+BEFORE INSERT ON Masks FOR EACH ROW 
+DECLARE
+  valorcalculado VARCHAR2(4000);
+BEGIN
+    valorcalculado := Mask_Function(:new.Mask);
+    :new.Result := valorcalculado;
+END;  
